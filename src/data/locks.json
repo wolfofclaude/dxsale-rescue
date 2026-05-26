@@ -1,0 +1,13 @@
+{
+  "chain": "bsc",
+  "updated": "2026-05-27",
+  "note": "Open registry of DXsale LP lock contract addresses on BNB Smart Chain. Addresses only — live status, value, and owner are computed on-chain at read time. Contributions welcome: add verified lock addresses via PR or the import script. Never add fabricated addresses.",
+  "locks": [
+    {
+      "address": "0x30594e7cc7787f5eb1397656c1588f64bddbfbf7",
+      "token": "RTL",
+      "version": "dxsale-presale-v1",
+      "source": "verified-manual"
+    }
+  ]
+}
