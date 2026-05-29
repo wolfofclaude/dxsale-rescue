@@ -1,74 +1,57 @@
-"use client";
+import type { Metadata } from "next";
+import { aggregateStats, registryMeta } from "@/lib/library";
+import { getBnbUsd } from "@/lib/price";
 
-import { useState } from "react";
+export const dynamic = "force-dynamic";
 
-interface Stats {
-  scanned: number; recoverable: number; recoverableUsd: number;
-  stillLocked: number; emptyOrWithdrawn: number; needsReview: number;
-  generatedAt: string;
-}
+export const metadata: Metadata = {
+  title: "Stats",
+  description:
+    "Total value locked across funded DXsale locks on BNB Smart Chain, with recoverable " +
+    "and still-locked breakdowns. Totals only.",
+  alternates: { canonical: "/stats" },
+};
 
-export default function StatsPage() {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export default async function StatsPage() {
+  const s = aggregateStats();
+  const meta = registryMeta();
+  const bnb = await getBnbUsd();
+  const scale = bnb / (meta.bnbUsd || 600);
+  const m = (n: number) => `$${Math.round(n * scale).toLocaleString()}`;
 
-  async function load() {
-    setLoading(true); setError(null);
-    try {
-      const res = await fetch("/api/stats");
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Failed");
-      setStats(json);
-    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
-  }
-
-  const cards = stats ? [
-    ["Locks scanned", stats.scanned.toLocaleString()],
-    ["Recoverable now", stats.recoverable.toLocaleString()],
-    ["Value reachable", `$${stats.recoverableUsd.toLocaleString()}`],
-    ["Still locked", stats.stillLocked.toLocaleString()],
-    ["Empty / withdrawn", stats.emptyOrWithdrawn.toLocaleString()],
-    ["Needs review", stats.needsReview.toLocaleString()],
-  ] : [];
+  const cards: [string, string, boolean][] = [
+    ["Total value locked", m(s.tvlUsd), true],
+    ["Recoverable value", m(s.recoverableUsd), true],
+    ["Locked value", m(s.lockedUsd), true],
+    ["Recoverable locks", s.recoverable.toLocaleString(), false],
+    ["Still locked", s.stillLocked.toLocaleString(), false],
+    ["Funded locks", (s.recoverable + s.stillLocked).toLocaleString(), false],
+  ];
 
   return (
-    <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="text-3xl font-bold text-gray-50">Stranded liquidity, in aggregate</h1>
-        <p className="mt-2 max-w-2xl text-gray-400">
-          Live scan of DXsale locks on BNB Smart Chain. We show totals only — never a
-          browsable list of owners — so this can&apos;t become a target list. To recover,
-          an owner looks up their own lock on the home page.
+    <div className="flex flex-col gap-12">
+      <header className="flex flex-col gap-3">
+        <span className="label">Aggregate totals</span>
+        <h1 className="text-4xl leading-tight">Value, in aggregate</h1>
+        <p className="max-w-xl text-sm leading-relaxed text-gray-400">
+          Decoded from the DXsale lock library on BNB Smart Chain. Totals only, never a
+          browsable list of owners. To recover, an owner looks up their own lock.
         </p>
       </header>
 
-      {!stats && (
-        <button onClick={load} disabled={loading} className="btn-brand w-fit">
-          {loading ? "Scanning the chain…" : "Run the scan"}
-        </button>
-      )}
-      {error && (
-        <p className="text-sm text-danger">
-          {error} <span className="text-gray-500">(needs FACTORY + ETHERSCAN_API_KEY configured)</span>
-        </p>
-      )}
-
-      {stats && (
-        <>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {cards.map(([label, value]) => (
-              <div key={label} className="panel p-5">
-                <div className="text-2xl font-bold text-gray-50">{value}</div>
-                <div className="mt-1 text-sm text-gray-400">{label}</div>
-              </div>
-            ))}
+      <div className="grid grid-cols-1 gap-px overflow-hidden rounded-md border border-edge bg-edge sm:grid-cols-3">
+        {cards.map(([label, value, accent]) => (
+          <div key={label} className="bg-panel px-6 py-8">
+            <div className="label">{label}</div>
+            <div className={`mt-3 nums text-3xl font-semibold tracking-tight ${accent ? "text-brand" : "text-gray-50"}`}>{value}</div>
           </div>
-          <p className="text-xs text-gray-500">
-            Generated {new Date(stats.generatedAt).toLocaleString()}.
-          </p>
-        </>
-      )}
+        ))}
+      </div>
+
+      <p className="border-t border-edge pt-6 text-xs text-gray-500">
+        Library updated {meta.updated}. BNB priced at ${bnb.toLocaleString()} live via
+        CoinGecko; values track it for BNB-denominated pools.
+      </p>
     </div>
   );
 }

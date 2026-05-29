@@ -4,8 +4,9 @@
 import { ethers } from "ethers";
 import {
   RPC_URL, BNB_USD, REFERENCE_LOCK, REFUND_SELECTOR, WBNB, STABLES,
-  PAIR_ABI, type LockReport,
+  PAIR_ABI, FACTORY_ABI, type LockReport,
 } from "./chain";
+import { getBnbUsd } from "./price";
 
 export function getProvider() {
   return new ethers.JsonRpcProvider(RPC_URL);
@@ -24,13 +25,14 @@ export function estimateUsd(
   t0: string, t1: string,
   reserves: readonly [bigint, bigint, number] | any,
   supply: bigint, held: bigint,
+  bnbUsd: number = BNB_USD,
 ): number | null {
   if (supply === 0n) return null;
   const a = t0.toLowerCase(), b = t1.toLowerCase();
   const r0 = BigInt(reserves[0]), r1 = BigInt(reserves[1]);
   let sideReserve: bigint | null = null, mult = 1;
-  if (a === WBNB) { sideReserve = r0; mult = BNB_USD; }
-  else if (b === WBNB) { sideReserve = r1; mult = BNB_USD; }
+  if (a === WBNB) { sideReserve = r0; mult = bnbUsd; }
+  else if (b === WBNB) { sideReserve = r1; mult = bnbUsd; }
   else if (STABLES[a]) { sideReserve = r0; mult = STABLES[a]; }
   else if (STABLES[b]) { sideReserve = r1; mult = STABLES[b]; }
   if (sideReserve === null) return null;
@@ -52,6 +54,7 @@ export async function analyzeLock(
   provider: ethers.JsonRpcProvider,
   address: string,
   refHash: string,
+  bnbUsd: number = BNB_USD,
 ): Promise<LockReport> {
   const row: LockReport = { address, status: "skip" };
   try {
@@ -69,42 +72,46 @@ export async function analyzeLock(
       return row;
     }
 
-    const [s3, s4, s6] = await Promise.all([
+    // DXsale lock layout (verified): slot2 = project token, slot3 = authorized
+    // caller, slot4 = unlock timestamp, slot6 = the DEX factory. The LP pair
+    // address is NOT stored — it must be COMPUTED via factory.getPair(token, base).
+    const [s2, s3, s4, s6] = await Promise.all([
+      provider.getStorage(address, 2),
       provider.getStorage(address, 3),
       provider.getStorage(address, 4),
       provider.getStorage(address, 6),
     ]);
-    row.authorizedCaller = slotToAddress(s3);
+    row.authorizedCaller = slotToAddress(s3); // needed at recovery time
     const unlockTime = BigInt(s4);
     row.unlockTime = new Date(Number(unlockTime) * 1000).toISOString();
-    row.withdrawn = ((BigInt(s6) >> 160n) & 0xffn) !== 0n;
 
-    // Locate the LP token held by the lock.
-    const candWords = await Promise.all(
-      [0, 1, 2, 5, 7, 8, 9, 10].map((i) => provider.getStorage(address, i)),
-    );
-    const candAddrs = Array.from(
-      new Set(candWords.map(slotToAddress).filter(Boolean) as string[]),
-    );
-    for (const tokenAddr of candAddrs) {
-      try {
-        const pair = new ethers.Contract(tokenAddr, PAIR_ABI, provider);
-        const held: bigint = await pair.balanceOf(address);
-        if (held === 0n) continue;
-        const [t0, t1, reserves, supply] = await Promise.all([
-          pair.token0(), pair.token1(), pair.getReserves(), pair.totalSupply(),
-        ]);
-        row.lpToken = tokenAddr;
-        row.lpHeld = ethers.formatUnits(held, 18);
-        row.estUsd = estimateUsd(t0, t1, reserves, supply, held);
-        break;
-      } catch { /* not the LP token */ }
+    const token = slotToAddress(s2);
+    const factory = slotToAddress(s6);
+    if (token) row.tokenAddress = token;
+    if (token && factory) {
+      const fac = new ethers.Contract(factory, FACTORY_ABI, provider);
+      for (const base of [WBNB, ...Object.keys(STABLES)]) {
+        let pairAddr: string;
+        try { pairAddr = await fac.getPair(token, base); } catch { continue; }
+        if (!pairAddr || pairAddr === ethers.ZeroAddress) continue;
+        try {
+          const pair = new ethers.Contract(pairAddr, PAIR_ABI, provider);
+          const held: bigint = await pair.balanceOf(address);
+          if (held === 0n) continue;
+          const [t0, t1, reserves, supply] = await Promise.all([
+            pair.token0(), pair.token1(), pair.getReserves(), pair.totalSupply(),
+          ]);
+          row.lpToken = pairAddr;
+          row.lpHeld = ethers.formatUnits(held, 18);
+          row.estUsd = estimateUsd(t0, t1, reserves, supply, held, bnbUsd);
+          break;
+        } catch { continue; }
+      }
     }
 
     const now = BigInt(Math.floor(Date.now() / 1000));
     const funded = !!row.lpHeld && Number(row.lpHeld) > 0;
-    if (!funded) { row.status = "empty"; row.note = "already withdrawn or never funded"; }
-    else if (row.withdrawn) { row.status = "withdrawn-flag"; row.note = "flag set but holds LP — verify"; }
+    if (!funded) { row.status = "empty"; row.note = "no LP held (withdrawn or never funded)"; }
     else if (now <= unlockTime) { row.status = "locked"; row.note = "still in lock period"; }
     else { row.status = "RECOVERABLE"; }
     return row;
@@ -136,10 +143,11 @@ export async function discoverCandidates(): Promise<string[]> {
 export async function analyzeMany(addresses: string[]): Promise<LockReport[]> {
   const provider = getProvider();
   const refHash = await referenceHash(provider);
+  const bnbUsd = await getBnbUsd(); // live CoinGecko price for accurate value
   const out: LockReport[] = [];
   for (let i = 0; i < addresses.length; i += 8) {
     const batch = addresses.slice(i, i + 8);
-    out.push(...(await Promise.all(batch.map((a) => analyzeLock(provider, a, refHash)))));
+    out.push(...(await Promise.all(batch.map((a) => analyzeLock(provider, a, refHash, bnbUsd)))));
   }
   return out;
 }

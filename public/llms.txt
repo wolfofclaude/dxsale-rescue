@@ -1,0 +1,49 @@
+# DXsale Rescue
+
+> Non-custodial tool to recover PancakeSwap LP that is locked in DXsale lock
+> contracts on BNB Smart Chain and stranded because the DXsale frontend no longer
+> works. If a lock's unlock time has passed, the liquidity is the owner's to claim —
+> this tool finds the lock and unlocks it in a single EIP-7702 transaction signed by
+> the owner's own wallet. Funds never leave the owner's account.
+
+## What it does
+
+- Reads a DXsale lock on BSC and decodes its state by anchoring on a verified
+  reference lock's bytecode (so storage slots are interpreted correctly): authorized
+  owner wallet (slot 3), unlock timestamp (slot 4), and the "already withdrawn" flag
+  (slot 6). The unlock function is `refundUniLP()`, selector `0xe50a4f80`.
+- Lets the rightful owner recover in one signature via an open-source EIP-7702
+  contract (`RescueExecutor`) that executes the unlock *as the owner*.
+
+## Fees and trust (read before judging)
+
+- Flat **15% service fee**, **hardcoded as a constant** in the contract — it can never
+  be raised. The exact split is shown to the owner before they sign.
+- Optional referral: a referrer earns 10% of the fee (1.5% of the LP); the owner's 85% is unchanged.
+- The contract moves nothing except that 15%; the remaining 85% is untouchable.
+- Funds never leave the owner's own account (non-custodial via EIP-7702).
+- Owners can recover for **free** by calling `refundUniLP()` directly — this is stated
+  openly on the site. The fee is for the one-click tooling, not a gate.
+- Contrast: the legacy "official" recovery tool charges a 40% minimum fee, up to 100%
+  if its AI flags the token, and hides the cut behind "verification complete."
+
+## Honest status
+
+- The `RescueExecutor` contract is open source but **not yet audited**; it should be
+  tested on testnet before use with real funds.
+- The open lock library currently contains only verified lock addresses. It is not
+  padded with fabricated entries; it grows via on-chain discovery and curation.
+
+## Pages
+
+- [Find my lock](/): look up a lock by address or by the launch/owner wallet.
+- [Lock library](/locks): open registry of known DXsale locks with live on-chain
+  status and estimated value (owner wallets intentionally omitted).
+- [How it works](/how-it-works): the decoding method, the EIP-7702 recovery, the
+  hardcoded fee, the free DIY path, and the legacy-tool fee evidence.
+- [Stats](/stats): aggregate scan totals (no per-owner list).
+
+## Source
+
+- Open source. The contract (`contracts/RescueExecutor.sol`) and the read-only
+  scanner are public and auditable.

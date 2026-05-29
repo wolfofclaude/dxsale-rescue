@@ -1,37 +1,83 @@
-// The open lock library: a registry of known DXsale lock addresses, enriched
-// with live on-chain status at read time. The registry holds addresses only;
-// nothing about value/ownership is baked in — it's all computed fresh.
+// The open lock library. Entries are PRE-COMPUTED by scripts/index-locks.mjs.
+// We read locks.json FRESH from disk on each call (not a static import) so the
+// site reflects the file live as the indexer fills it. Falls back to the
+// bundled copy if the file can't be read (e.g. mid-write or on Vercel).
 
-import registry from "@/data/locks.json";
-import { analyzeMany } from "./scanner";
-import type { LockReport } from "./chain";
+import fs from "fs";
+import path from "path";
+import seed from "@/data/locks.json";
+import type { LockStatus } from "./chain";
 
-export interface RegistryEntry {
+export interface LibraryEntry {
   address: string;
-  token?: string;
+  token?: string;        // symbol
+  tokenAddress?: string; // project token contract
   version?: string;
-  source?: string;
+  status: LockStatus;
+  estUsd?: number | null;
+  unlockTime?: string | null;
+  lpToken?: string | null;
+  ownerLastActive?: string | null; // ISO: owner wallet's last signed tx
+  ownerDaysIdle?: number | null;   // days since that tx (null = not measured)
 }
 
-export function registryEntries(): RegistryEntry[] {
-  return (registry.locks as RegistryEntry[]) ?? [];
+interface Registry {
+  chain?: string; updated?: string; factory?: string; bnbUsd?: number; locks: LibraryEntry[];
+}
+
+let lastGood: Registry = seed as unknown as Registry;
+
+function loadRegistry(): Registry {
+  try {
+    const p = path.join(process.cwd(), "src", "data", "locks.json");
+    const parsed = JSON.parse(fs.readFileSync(p, "utf8")) as Registry;
+    if (Array.isArray(parsed.locks)) lastGood = parsed;
+    return lastGood;
+  } catch {
+    return lastGood; // file missing or caught mid-write — serve last good copy
+  }
+}
+
+export function libraryRows(): LibraryEntry[] {
+  return loadRegistry().locks ?? [];
 }
 
 export function registryMeta() {
-  return { chain: registry.chain, updated: registry.updated, count: registryEntries().length };
+  const r = loadRegistry();
+  return {
+    chain: r.chain, updated: r.updated, factory: r.factory,
+    bnbUsd: r.bnbUsd ?? 600, // BNB price used when values were computed
+    count: (r.locks ?? []).length,
+  };
 }
 
-export interface LibraryRow extends LockReport {
-  token?: string;
-  version?: string;
-}
-
-export async function enrichLibrary(): Promise<LibraryRow[]> {
-  const entries = registryEntries();
-  const reports = await analyzeMany(entries.map((e) => e.address));
-  const byAddr = new Map(reports.map((r) => [r.address.toLowerCase(), r]));
-  return entries.map((e) => {
-    const r = byAddr.get(e.address.toLowerCase());
-    return { ...(r as LockReport), token: e.token, version: e.version };
+export function sortedRows(filter?: "recoverable"): LibraryEntry[] {
+  const rows = [...libraryRows()];
+  rows.sort((a, b) => {
+    const score = (r: LibraryEntry) =>
+      r.status === "RECOVERABLE" ? 1e15 + (r.estUsd ?? 0) : r.estUsd ?? 0;
+    return score(b) - score(a);
   });
+  return filter === "recoverable" ? rows.filter((r) => r.status === "RECOVERABLE") : rows;
+}
+
+export function aggregateStats() {
+  const rows = libraryRows();
+  const tally: Record<string, number> = {};
+  let recoverableUsd = 0, lockedUsd = 0;
+  for (const r of rows) {
+    tally[r.status] = (tally[r.status] || 0) + 1;
+    if (r.status === "RECOVERABLE") recoverableUsd += r.estUsd ?? 0;
+    else if (r.status === "locked") lockedUsd += r.estUsd ?? 0;
+  }
+  return {
+    indexed: rows.length,
+    recoverable: tally["RECOVERABLE"] || 0,
+    recoverableUsd,
+    stillLocked: tally["locked"] || 0,
+    lockedUsd,
+    tvlUsd: recoverableUsd + lockedUsd, // total value locked across the library
+    emptyOrWithdrawn: (tally["empty"] || 0) + (tally["withdrawn-flag"] || 0),
+    needsReview: tally["review"] || 0,
+  };
 }

@@ -5,19 +5,44 @@
 :root { color-scheme: dark; }
 
 body {
-  @apply bg-ink text-gray-200 antialiased;
+  @apply bg-ink text-gray-200 antialiased font-sans;
+  font-feature-settings: "liga" 1, "calt" 1, "cv11" 1; /* Inter: open digits */
 }
 
-.container-x { @apply mx-auto w-full max-w-5xl px-5; }
-.panel { @apply rounded-xl border border-edge bg-panel; }
+/* Tabular figures for aligned numbers in data displays. */
+.nums { font-variant-numeric: tabular-nums; }
+
+/* Clean, tight sans headings. */
+h1, h2, h3 { @apply text-gray-50; font-weight: 600; letter-spacing: -0.02em; }
+
+/* Ma — generous margins, narrow measure. */
+.container-x { @apply mx-auto w-full max-w-5xl px-6 sm:px-10; }
+
+/* Surfaces are quiet: hairline, soft paper, restrained radius. */
+.panel { @apply rounded-md border border-edge bg-panel; }
+.hair { @apply border-edge; }
+
 .btn {
-  @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm
-         font-medium transition disabled:opacity-40 disabled:cursor-not-allowed;
+  @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm
+         font-medium tracking-wide transition disabled:opacity-40 disabled:cursor-not-allowed;
 }
-.btn-brand { @apply btn bg-brand text-ink hover:brightness-110; }
-.btn-ghost { @apply btn border border-edge text-gray-200 hover:bg-edge/40; }
+.btn-brand { @apply btn bg-brand text-ink hover:brightness-105; }
+.btn-ghost { @apply btn border border-edge text-gray-200 hover:bg-edge/50; }
+
 .input {
-  @apply w-full rounded-lg border border-edge bg-ink px-3 py-2 font-mono text-sm
-         outline-none focus:border-brand;
+  @apply w-full rounded-md border border-edge bg-panel px-3 py-2 font-mono text-sm
+         text-gray-100 outline-none focus:border-brand;
 }
-.tag { @apply rounded px-2 py-0.5 text-xs font-medium; }
+
+/* Quiet chips, lightly squared. */
+.tag { @apply inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition; }
+
+/* Small uppercase labels. */
+.label { @apply text-[11px] uppercase tracking-widest2 text-gray-500; }
+
+/* Clean data table: roomy cells, hairline rows, tabular figures. */
+.zen-table { @apply w-full border-collapse text-sm; font-variant-numeric: tabular-nums; }
+.zen-table thead th { @apply whitespace-nowrap px-5 py-3.5 text-left text-[11px] font-medium uppercase tracking-wider text-gray-500; }
+.zen-table tbody td { @apply whitespace-nowrap px-5 py-4 align-middle; }
+.zen-table tbody tr { @apply border-t border-edge/60; }
+.zen-table tbody tr:hover { @apply bg-gray-50/[0.02]; }

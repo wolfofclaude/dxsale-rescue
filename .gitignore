@@ -5,13 +5,36 @@
 /.next
 /out
 
+# foundry
+/cache
+/broadcast
+
 # env — NEVER commit keys or wallets
 .env
 .env.local
 .env*.local
+
+# generated wallet — holds a PRIVATE KEY, never commit
+/wallet.json
+*.wallet.json
+/.secrets/
 
 # misc
 *.log
 .DS_Store
 /recoverable.json
 /candidates.json
+
+# owner-liveness analysis — contains owner wallet addresses, never publish
+/src/data/owner-activity.json
+
+# archive: one-off + non-runtime tooling (incl. owner-profiling), kept local
+/archive/
+
+# generated exports / office temp files
+*.xlsx
+~$*
+
+# local runners (contain your RPC key)
+/run-index.cmd
+/run-enrich.cmd

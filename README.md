@@ -1,64 +1,102 @@
 # DXsale Rescue
 
-A non-custodial web tool to recover **DXsale LP locks stranded by the dead frontend**.
-If your lock has expired, the liquidity is yours to claim — this app finds it and lets
-you sign the unlock **in your own wallet**. No private keys leave your browser. **0% fee.**
+One-signature, non-custodial recovery for liquidity stranded in legacy **DXsale LP locks** on BNB Smart Chain.
 
-This is the honest counterpart to the "official" legacy recovery site, which charges a
-**40% minimum (up to 100%)** to return funds that are already yours.
+> Independent tool. Not affiliated with DXsale.
 
-## Stack
-- Next.js 14 (App Router) + TypeScript + Tailwind
-- ethers v6 (server reads via RPC; client unlock via injected wallet)
-- Read-only analysis ported from the [`scanner`](../scanner) CLI
+---
 
-## How it stays safe
-- **Decoding is anchored to a verified lock's bytecode hash.** Only locks with matching
-  bytecode (identical storage layout) are auto-decoded; others are flagged for review.
-- **Recovery is non-custodial.** The site never asks for or handles a private key; the
-  owner signs `refundUniLP()` with their own wallet and the LP goes straight to them.
-- **No target list.** `/stats` exposes aggregates only. Owners look up their own lock.
+## The problem
 
-## Run locally
+Thousands of BNB-chain projects locked their PancakeSwap LP on DXsale to prove they would not pull liquidity. The LP sits in a per-launch lock contract until an unlock timestamp passes. Then DXsale's frontend went dark.
+
+The lock contracts still work perfectly. The unlock function, `refundUniLP()` (selector `0xe50a4f80`), is public and lives on-chain. But with no UI, owners have no obvious button to call it, so expired, claimable liquidity just sits there. This tool finds those locks and opens them.
+
+## How recovery works (EIP-7702)
+
+A DXsale lock only obeys **one address**: the original owner, stored in storage slot 3 (`authorizedCaller`). Call `refundUniLP()` from anyone else and it reverts. That is why a plain "rescue contract" cannot help, the lock would reject it.
+
+`RescueExecutor` gets around this with **EIP-7702**:
+
+1. The owner signs an authorization delegating their own wallet to `RescueExecutor`.
+2. A type-4 transaction is sent to the owner's own address, calling `rescue(lock, lpToken, referrer)`.
+3. The owner's account now runs the contract's code, so `address(this)` **is the owner**. When it calls `lock.refundUniLP()`, the lock sees its authorized caller and releases the LP into the owner's account.
+4. In the same atomic transaction, the contract takes the service fee and leaves the rest with the owner.
+
+`RescueExecutor` has no special power over the lock. It only works because the owner runs it as themselves, and a `require(msg.sender == address(this))` guard means nobody else can trigger it. It cannot be pointed at someone else's lock.
+
+## Fees, and the free alternative
+
+- **Flat 15% service fee**, hardcoded as a `constant` in the contract. It can never be raised or exceeded.
+- **You keep 85%.** Funds never leave your own wallet (non-custodial via 7702). The exact split is shown before you sign.
+- **Optional referral:** a referrer earns 10% of the fee (1.5% of the LP). Your 85% is unchanged.
+- **You never have to pay.** `refundUniLP()` is a public function. From your owner wallet you can call it directly on BscScan's "Write Contract" tab, or run the open-source script, and keep 100% for the cost of gas. The 15% is for the one-click convenience, not a gate. This is stated openly in the app.
+
+## Warning: dxsale.one is a wallet drainer
+
+The "legacy recovery" site circulating as DXsale's, `lpsearch.dxsale.one`, is malicious. Analysis of its own JavaScript shows it:
+
+- skims a cut of your tokens to a hardcoded wallet, labeling the step "Verification complete,"
+- sets that cut from an AI "scam check" (`feeBps: isScam ? 1e4 : 4e3`, i.e. 40% by default, 100% if flagged),
+- exfiltrates your address and position value to its own `/api/wallet-track` backend, and
+- offers a one-signature EIP-7702 flow that delegates your wallet to its extractor and batches the drain.
+
+Do not connect a wallet to it. The verified official DXsale domain is `dxsale.app`.
+
+## Contract: RescueExecutor
+
+- Network: BNB Smart Chain (chainId 56)
+- Address: set in `NEXT_PUBLIC_RESCUE_EXECUTOR` (read the verified source on BscScan)
+- Solidity 0.8.24, optimizer 200 runs, non-upgradeable, no owner/admin functions
+- **Not audited.** It handles user funds. Get an independent audit before pointing it at large value.
+
+## Project layout
+
+```
+contracts/        RescueExecutor.sol           the 7702 rescue contract
+test/             RescueExecutor.t.sol         Foundry tests (real 7702 cheatcodes)
+script/           Deploy.s.sol                 forge deploy script
+src/app/          Next.js app (App Router)     pages: /, /locks, /recover, /how-it-works, /stats
+src/lib/          chain, scanner, library, price, rescue7702, clientConfig
+src/components/   UI components (TrustPanel, ConnectButton, LookupForm, ...)
+src/data/         locks.json                   indexed lock library (projects only, no owner wallets)
+scripts/          index-locks, add-token-info  data pipeline
+```
+
+## Local development
+
 ```bash
 npm install
-cp .env.example .env.local   # fill in RPC_URL; ETHERSCAN_API_KEY + FACTORY for wallet/stats
-npm run dev
+cp .env.example .env       # fill RPC_URL, etc.
+npm run dev                # http://localhost:3000
 ```
-Lock-address lookup and recovery work with just `RPC_URL`. The "my wallet" lookup and the
-`/stats` dashboard need `ETHERSCAN_API_KEY` + `FACTORY` (the DXsale deployer) for discovery.
 
-## Deploy (Vercel)
-1. Push to GitHub (the `.gitignore` already excludes `.env*`).
-2. Import the repo in Vercel.
-3. Set env vars in the Vercel project: `RPC_URL`, `ETHERSCAN_API_KEY`, `FACTORY`, `BNB_USD`.
-4. Deploy.
+Lock-address lookup and recovery work with just `RPC_URL`. The wallet lookup and `/stats` dashboard also use `ETHERSCAN_API_KEY` + `FACTORY` for discovery.
+
+## Contract: build, test, deploy, verify
+
+Requires [Foundry](https://book.getfoundry.sh/).
+
+```bash
+forge build
+forge test -vvv                              # runs the 7702 simulation suite
+
+# deploy + verify (reads RPC_URL / PRIVATE_KEY / FEE_WALLET / ETHERSCAN_API_KEY from .env)
+bash deploy.sh
+```
+
+After deploying, set `NEXT_PUBLIC_RESCUE_EXECUTOR` to the new address to activate the recover flow.
 
 ## Routes
+
 | Path | What |
 |---|---|
-| `/` | Find your lock (by lock address or launch wallet) |
-| `/locks` | The open lock library — browsable registry, live status |
+| `/` | Find your lock; live stats; the drainer warning |
+| `/locks` | The open lock library (projects only, browsable, live status) |
 | `/recover?lock=…` | Connect wallet, verify ownership, sign the unlock |
-| `/how-it-works` | The decode method + the 40–100% fee exposé |
+| `/how-it-works` | The decode method, the 7702 flow, and the dxsale.one exposé |
 | `/stats` | Aggregate scan of stranded locks (no owner list) |
-| `/api/lookup` | `?lock=` or `?wallet=` → lock report(s) |
-| `/api/locks` | the registry, enriched with live status (owner omitted) |
-| `/api/stats` | aggregate counts + reachable USD |
 
-## The open lock library
+## Disclaimer
 
-There is no public registry of DXsale locks anywhere — `src/data/locks.json` is one.
-It holds **addresses only**; status, value, and ownership are read live from chain. It
-is intentionally **not** a target list (owner wallets are omitted from the public view).
-
-Grow it from discovery output or a curated list:
-```bash
-# e.g. import the candidates the sibling ../scanner produced
-node scripts/import-locks.mjs ../scanner/candidates.json
-```
-Only ever add **real, verified** lock addresses. Never fabricate entries.
-
-## Ethics
-Only for helping **rightful owners reach their own expired locks**. Not for springing
-active locks or touching anyone else's funds.
+This software is provided as is, without warranty, under the MIT License. It is not affiliated with, endorsed by, or connected to DXsale. The contract is unaudited. You are responsible for verifying the contract and lock addresses you interact with. You can always recover your own liquidity for free by calling `refundUniLP()` directly.

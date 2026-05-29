@@ -23,6 +23,8 @@ export const STABLES: Record<string, number> = {
 
 export const LOCK_ABI = ["function refundUniLP()"];
 
+export const FACTORY_ABI = ["function getPair(address,address) view returns (address)"];
+
 export const PAIR_ABI = [
   "function token0() view returns (address)",
   "function token1() view returns (address)",
@@ -49,6 +51,7 @@ export interface LockReport {
   authorizedCaller?: string | null;
   unlockTime?: string | null; // ISO
   withdrawn?: boolean;
+  tokenAddress?: string | null; // project token contract
   lpToken?: string | null;
   lpHeld?: string | null; // formatted units
   estUsd?: number | null;

@@ -1,0 +1,21 @@
+# Foundry config for the RescueExecutor contract. Coexists with the Next.js app:
+# contracts live in contracts/, tests in test/, artifacts in out/ (gitignored).
+[profile.default]
+src = "contracts"
+test = "test"
+out = "out"
+libs = ["lib"]
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 200
+# Prague is required for the EIP-7702 cheatcodes (signAndAttachDelegation) the
+# test uses, and matches BNB Chain post-Pascal (7702 live on BSC).
+evm_version = "prague"
+fs_permissions = [{ access = "read", path = "./" }]
+
+# BscScan verification via the Etherscan v2 multichain API (chainId 56).
+[etherscan]
+bsc = { key = "${ETHERSCAN_API_KEY}", chain = 56, url = "https://api.etherscan.io/v2/api" }
+
+[rpc_endpoints]
+bsc = "${RPC_URL}"
