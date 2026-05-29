@@ -7,6 +7,7 @@ import { ethers } from "ethers";
 import type { LockReport } from "@/lib/chain";
 import { StatusTag } from "@/components/StatusTag";
 import { TrustPanel } from "@/components/TrustPanel";
+import { StarRepoCta } from "@/components/GithubStar";
 import { rescueWith7702 } from "@/lib/rescue7702";
 import { getRef } from "@/lib/referral";
 import {
@@ -182,6 +183,7 @@ function RecoverInner() {
              href={`https://bscscan.com/tx/${txHash}`}>View transaction →</a>
         )}
         {msg && <p className="mt-3 text-sm text-gray-300">{msg}</p>}
+        {txHash && <StarRepoCta />}
       </div>
 
       <p className="mt-3 text-center text-xs text-gray-500">

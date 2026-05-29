@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { RESCUE_EXECUTOR, FEE_BPS, REFERRAL_SHARE_BPS } from "@/lib/clientConfig";
 
 // Everything here is independently verifiable. The contract is the source of
@@ -52,10 +51,9 @@ export function TrustPanel() {
       body: <>The breakdown (you keep 85%, fee 15%) is shown above before any signature. No hidden &ldquo;verification&rdquo; step.</>,
     },
     {
-      title: "You never have to pay us at all",
-      body: <>The unlock is a public function (<code className="text-gray-300">refundUniLP()</code>). You can call it
-        yourself from your owner wallet for the cost of gas, no fee.{" "}
-        <Link href="/how-it-works" className="text-gray-300 underline">Here&apos;s how</Link>. The 15% is for the one-click convenience, not a gate.</>,
+      title: "Non-upgradeable, no admin keys",
+      body: <>The contract has no owner or admin functions and cannot be upgraded. What you verify
+        on-chain now is exactly what runs every time, forever. Nobody can change the rules later.</>,
     },
   ];
 

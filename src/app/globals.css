@@ -7,42 +7,76 @@
 body {
   @apply bg-ink text-gray-200 antialiased font-sans;
   font-feature-settings: "liga" 1, "calt" 1, "cv11" 1; /* Inter: open digits */
+  /* One subtle light glow, fixed behind everything. Restrained. */
+  background-image:
+    radial-gradient(52rem 36rem at 50% -14%, rgba(255, 255, 255, 0.05), transparent 62%);
+  background-attachment: fixed;
 }
+
+::selection { background: rgba(250, 250, 250, 0.16); color: #fafafa; }
 
 /* Tabular figures for aligned numbers in data displays. */
 .nums { font-variant-numeric: tabular-nums; }
 
-/* Clean, tight sans headings. */
-h1, h2, h3 { @apply text-gray-50; font-weight: 600; letter-spacing: -0.02em; }
+/* Display headings: geometric sans, tight tracking. */
+h1, h2, h3 {
+  @apply text-gray-50;
+  font-family: var(--font-display), var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
 
-/* Ma — generous margins, narrow measure. */
+/* Generous margins, narrow measure. */
 .container-x { @apply mx-auto w-full max-w-5xl px-6 sm:px-10; }
 
-/* Surfaces are quiet: hairline, soft paper, restrained radius. */
-.panel { @apply rounded-md border border-edge bg-panel; }
+/* Surfaces: soft paper, hairline, rounded. */
+.panel { @apply rounded-xl border border-edge bg-panel; }
 .hair { @apply border-edge; }
 
+/* Subtle silver gradient text, for one accent phrase. */
+.text-accent-grad {
+  background: linear-gradient(102deg, #ffffff 0%, #e6e6e8 42%, #8b8c90 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Buttons. */
 .btn {
-  @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm
          font-medium tracking-wide transition disabled:opacity-40 disabled:cursor-not-allowed;
 }
-.btn-brand { @apply btn bg-brand text-ink hover:brightness-105; }
-.btn-ghost { @apply btn border border-edge text-gray-200 hover:bg-edge/50; }
+.btn-brand {
+  @apply btn text-ink;
+  background-image: linear-gradient(180deg, #ffffff, #e7e7ea);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 8px 22px -14px rgba(255, 255, 255, 0.4);
+}
+.btn-brand:hover {
+  filter: brightness(1.04);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 12px 30px -12px rgba(255, 255, 255, 0.55);
+}
+.btn-ghost { @apply btn border border-edge text-gray-200; }
+.btn-ghost:hover { @apply border-gray-500 bg-white/[0.04] text-gray-50; }
 
 .input {
-  @apply w-full rounded-md border border-edge bg-panel px-3 py-2 font-mono text-sm
-         text-gray-100 outline-none focus:border-brand;
+  @apply w-full rounded-lg border border-edge bg-panel/80 px-3.5 py-2.5 font-mono text-sm
+         text-gray-100 outline-none transition focus:border-gray-400;
 }
+.input:focus { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08); }
 
-/* Quiet chips, lightly squared. */
+/* Quiet chips. */
 .tag { @apply inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition; }
 
 /* Small uppercase labels. */
 .label { @apply text-[11px] uppercase tracking-widest2 text-gray-500; }
 
-/* Clean data table: roomy cells, hairline rows, tabular figures. */
-.zen-table { @apply w-full border-collapse text-sm; font-variant-numeric: tabular-nums; }
-.zen-table thead th { @apply whitespace-nowrap px-5 py-3.5 text-left text-[11px] font-medium uppercase tracking-wider text-gray-500; }
-.zen-table tbody td { @apply whitespace-nowrap px-5 py-4 align-middle; }
-.zen-table tbody tr { @apply border-t border-edge/60; }
-.zen-table tbody tr:hover { @apply bg-gray-50/[0.02]; }
+/* Clean data table: roomy cells, hairline rows, tabular figures, larger text. */
+.zen-table { @apply w-full border-collapse text-[15px]; font-variant-numeric: tabular-nums; }
+.zen-table thead th { @apply whitespace-nowrap px-3.5 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6 sm:py-4; }
+.zen-table tbody td { @apply whitespace-nowrap px-3.5 py-4 align-middle sm:px-6 sm:py-5; }
+.zen-table tbody tr { @apply border-t border-edge/60 transition-colors; }
+.zen-table tbody tr:hover { @apply bg-white/[0.03]; }
+
+/* Slim, themed scrollbars. */
+* { scrollbar-width: thin; scrollbar-color: #2a2b2e transparent; }
+::-webkit-scrollbar { height: 8px; width: 8px; }
+::-webkit-scrollbar-thumb { background: #2a2b2e; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #3f4043; }

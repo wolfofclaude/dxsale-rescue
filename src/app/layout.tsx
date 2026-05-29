@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { RefCapture } from "@/components/RefCapture";
 import { ConnectButton } from "@/components/ConnectButton";
-import { SITE_URL, TELEGRAM_URL, TELEGRAM_HANDLE, TELEGRAM_URL_DEV, TELEGRAM_HANDLE_DEV } from "@/lib/clientConfig";
+import { GithubNavLink, GithubMark } from "@/components/GithubStar";
+import {
+  SITE_URL, TELEGRAM_URL, TELEGRAM_HANDLE, TELEGRAM_URL_DEV, TELEGRAM_HANDLE_DEV, GITHUB_URL,
+} from "@/lib/clientConfig";
 
-// Inter: the geometric UI sans behind most Uber-style dashboards (Uber Move is
-// proprietary). Self-hosted by next/font, with tabular figures enabled in CSS.
+// Inter for body/UI; Space Grotesk for display headings, self-hosted by next/font.
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+const display = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -34,20 +41,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${inter.variable} ${display.variable}`}>
       <body>
         <RefCapture />
-        <header className="border-b border-edge">
+        <header className="sticky top-0 z-40 border-b border-edge/70 bg-ink/70 backdrop-blur-xl">
           <nav className="container-x flex h-20 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-brand" />
-              <span className="text-base font-semibold tracking-tight text-gray-50">DXsale Rescue</span>
+            <Link href="/" className="flex items-center gap-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-brand ring-4 ring-brand/15" />
+              <span className="font-display text-[15px] font-semibold tracking-tight text-gray-50">DXsale Rescue</span>
             </Link>
-            <div className="flex items-center gap-7 text-sm text-gray-400">
-              <Link href="/" className="hidden hover:text-gray-50 transition sm:inline">Find</Link>
-              <Link href="/locks" className="hover:text-gray-50 transition">Library</Link>
-              <Link href="/how-it-works" className="hidden hover:text-gray-50 transition sm:inline">How it works</Link>
-              <Link href="/stats" className="hidden hover:text-gray-50 transition sm:inline">Stats</Link>
+            <div className="flex items-center gap-5 text-sm text-gray-400 sm:gap-7">
+              <Link href="/" className="hidden transition hover:text-gray-50 sm:inline">Find</Link>
+              <Link href="/locks" className="transition hover:text-gray-50">Library</Link>
+              <Link href="/how-it-works" className="hidden transition hover:text-gray-50 sm:inline">How it works</Link>
+              <Link href="/stats" className="hidden transition hover:text-gray-50 sm:inline">Stats</Link>
+              <GithubNavLink />
               <ConnectButton />
             </div>
           </nav>
@@ -67,6 +75,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <a href={TELEGRAM_URL_DEV} target="_blank" rel="noreferrer" className="text-gray-300 underline hover:text-gray-100">
               @{TELEGRAM_HANDLE_DEV}
             </a>
+          </p>
+          <p className="mt-2">
+            Open source, MIT licensed. If this got your liquidity back,{" "}
+            <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 align-baseline text-gray-300 underline hover:text-gray-100">
+              <GithubMark className="h-3.5 w-3.5" />star it on GitHub
+            </a>.
           </p>
         </footer>
       </body>

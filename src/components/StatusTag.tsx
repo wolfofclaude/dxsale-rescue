@@ -2,8 +2,8 @@ import type { LockStatus } from "@/lib/chain";
 
 // Minimal dot + label. Recoverable reads bright; everything else recedes.
 const DOT: Record<string, string> = {
-  RECOVERABLE: "bg-gray-50",
-  locked: "bg-gray-500",
+  RECOVERABLE: "bg-brand shadow-[0_0_8px_1px_rgba(250,250,250,0.5)]",
+  locked: "bg-gray-400",
   empty: "bg-gray-700",
   "withdrawn-flag": "bg-gray-500",
   review: "bg-gray-500",
@@ -11,8 +11,8 @@ const DOT: Record<string, string> = {
   error: "bg-danger",
 };
 const TEXT: Record<string, string> = {
-  RECOVERABLE: "text-gray-100",
-  locked: "text-gray-400",
+  RECOVERABLE: "text-brand",
+  locked: "text-gray-300",
   empty: "text-gray-500",
   "withdrawn-flag": "text-gray-400",
   review: "text-gray-400",

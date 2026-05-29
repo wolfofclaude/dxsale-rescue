@@ -19,44 +19,57 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col gap-16">
-      <section className="relative isolate flex flex-col gap-6 pt-2 sm:pt-4">
-        <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-64 w-[36rem] max-w-[90vw] -translate-x-1/2 rounded-full bg-brand/10 blur-[90px]" />
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="label">Liquidity recovery</span>
-          <span className="rounded-full border border-edge px-2.5 py-0.5 text-[11px] text-gray-500">
+      <section className="relative isolate flex flex-col items-start gap-6 pt-4 sm:pt-8">
+        <div aria-hidden className="pointer-events-none absolute -top-32 left-1/2 -z-10 h-72 w-[44rem] max-w-[95vw] -translate-x-1/2 rounded-full bg-brand/12 blur-[120px]" />
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand/10 px-3 py-1 text-[11px] font-medium uppercase tracking-widest2 text-brand">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+            Liquidity recovery
+          </span>
+          <span className="rounded-full border border-edge px-3 py-1 text-[11px] text-gray-500">
             Independent &middot; not affiliated with DXsale
           </span>
         </div>
-        <h1 className="max-w-2xl text-4xl leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
+
+        <h1 className="max-w-3xl text-4xl leading-[1.05] sm:text-5xl md:text-[3.6rem]">
           Your liquidity isn&apos;t gone.<br />
-          <span className="text-gray-400">It&apos;s waiting behind a dead door.</span>
+          <span className="text-accent-grad">It&apos;s waiting behind a dead door.</span>
         </h1>
-        <p className="max-w-xl text-[15px] leading-relaxed text-gray-400">
+
+        <p className="max-w-xl text-base leading-relaxed text-gray-300">
           Thousands of projects locked their LP on DXsale, then the interface went dark.
           If your lock has expired, the funds are yours to claim. There&apos;s just no
           button. This finds your lock and opens it in{" "}
-          <span className="text-gray-100">one signature</span> from your own wallet.
-          Funds never leave your account. A flat 15%, the exact split shown before you
-          sign.
+          <span className="font-medium text-brand">one signature</span> from your own wallet.
+          Funds never leave your account. A flat 15%, the exact split shown before you sign.
         </p>
-        <div className="flex gap-3 pt-1">
+
+        <div className="flex flex-wrap items-center gap-3 pt-1">
           <Link href="/locks" className="btn-brand">Browse the library</Link>
           <Link href="/how-it-works" className="btn-ghost">How it works</Link>
         </div>
+
+        <div className="mt-1 inline-flex items-center gap-2.5 rounded-full border border-edge bg-panel/60 px-3.5 py-1.5 text-xs text-gray-400">
+          <span className="h-2 w-2 rounded-full bg-brand ring-4 ring-brand/15" />
+          <span className="font-semibold text-brand">{fmtUsd(recoverableUsd)}</span>
+          <span>recoverable right now across {stats.recoverable.toLocaleString()} projects</span>
+        </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-edge bg-edge sm:grid-cols-3">
-        <Link href="/locks?filter=recoverable" className="bg-panel px-6 py-7 transition hover:bg-panel/70">
-          <div className="label">Recoverable right now</div>
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Link href="/locks?filter=recoverable" className="group relative overflow-hidden rounded-xl border border-brand/30 bg-panel p-6 transition duration-200 hover:-translate-y-0.5 hover:border-brand/55 hover:shadow-glow">
+          <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand to-transparent opacity-70" />
+          <div className="label text-brand/90">Recoverable right now</div>
           <div className="mt-2 nums text-4xl font-semibold tracking-tight text-brand">{fmtUsd(recoverableUsd)}</div>
-          <div className="mt-1.5 text-xs text-gray-500">{stats.recoverable.toLocaleString()} projects you can unlock today &rarr;</div>
+          <div className="mt-1.5 text-xs text-gray-500">{stats.recoverable.toLocaleString()} projects you can unlock today <span className="text-brand">&rarr;</span></div>
         </Link>
-        <Link href="/locks?filter=locked" className="bg-panel px-6 py-7 transition hover:bg-panel/70">
+        <Link href="/locks?filter=locked" className="group relative overflow-hidden rounded-xl border border-edge bg-panel p-6 transition duration-200 hover:-translate-y-0.5 hover:border-gray-600">
           <div className="label">Still locked</div>
           <div className="mt-2 nums text-4xl font-semibold tracking-tight text-gray-50">{fmtUsd(lockedUsd)}</div>
           <div className="mt-1.5 text-xs text-gray-500">{stats.stillLocked.toLocaleString()} unlocking over time &rarr;</div>
         </Link>
-        <Link href="/locks?filter=all" className="bg-panel px-6 py-7 transition hover:bg-panel/70">
+        <Link href="/locks?filter=all" className="group relative overflow-hidden rounded-xl border border-edge bg-panel p-6 transition duration-200 hover:-translate-y-0.5 hover:border-gray-600">
           <div className="label">Total liquidity tracked</div>
           <div className="mt-2 nums text-4xl font-semibold tracking-tight text-gray-50">{fmtUsd(tvlUsd)}</div>
           <div className="mt-1.5 text-xs text-gray-500">across {(stats.recoverable + stats.stillLocked).toLocaleString()} DXsale locks &rarr;</div>

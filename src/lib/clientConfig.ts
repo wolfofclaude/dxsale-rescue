@@ -24,6 +24,10 @@ export const TELEGRAM_URL = "https://t.me/wolfofclaude";
 export const TELEGRAM_HANDLE_DEV = "devdidsomething";
 export const TELEGRAM_URL_DEV = "https://t.me/devdidsomething";
 
+// Public source repo — surfaced in the header/footer and after a recovery so
+// people we helped can star it.
+export const GITHUB_URL = "https://github.com/wolfofclaude/dxsale-rescue";
+
 // Public base URL — used for metadata, robots, and sitemap. Set in Vercel.
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://dxsale-rescue.vercel.app"

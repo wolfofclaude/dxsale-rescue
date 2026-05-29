@@ -16,7 +16,7 @@ export function Address({ value, kind = "address" }: { value: string; kind?: "ad
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 font-mono text-xs">
+    <span className="inline-flex items-center gap-1.5 font-mono text-[13px]">
       <a
         href={`https://bscscan.com/${kind}/${value}`}
         target="_blank" rel="noreferrer"
