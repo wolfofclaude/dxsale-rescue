@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { RefCapture } from "@/components/RefCapture";
 import { ConnectButton } from "@/components/ConnectButton";
-import { SITE_URL, TELEGRAM_URL, TELEGRAM_HANDLE } from "@/lib/clientConfig";
+import { SITE_URL, TELEGRAM_URL, TELEGRAM_HANDLE, TELEGRAM_URL_DEV, TELEGRAM_HANDLE_DEV } from "@/lib/clientConfig";
 
 // Inter: the geometric UI sans behind most Uber-style dashboards (Uber Move is
 // proprietary). Self-hosted by next/font, with tabular figures enabled in CSS.
@@ -18,7 +18,7 @@ const TITLE = "DXsale Rescue: recover your stranded LP in one signature";
 const DESC =
   "Non-custodial recovery for DXsale liquidity locks stranded by the dead frontend. " +
   "Find your expired lock and unlock it in one EIP-7702 signature. Flat, hardcoded 15% " +
-  "fee (vs the legacy tool's 40-100%). Recover for free yourself anytime.";
+  "fee (vs the legacy tool's 40-100%).";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -56,13 +56,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="container-x border-t border-edge py-10 text-xs leading-relaxed text-gray-500">
           <p>
             Non-custodial recovery via EIP-7702; funds never leave your wallet. Flat 15%
-            service fee, hardcoded in the contract. You can always recover for free
-            yourself; the fee is for the tooling. Not affiliated with DXsale.
+            service fee, hardcoded in the contract. Not affiliated with DXsale.
           </p>
           <p className="mt-2">
-            Questions or need a hand recovering?{" "}
+            Questions or need a hand recovering? Message us on Telegram:{" "}
             <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="text-gray-300 underline hover:text-gray-100">
-              @{TELEGRAM_HANDLE} on Telegram
+              @{TELEGRAM_HANDLE}
+            </a>{" "}
+            or{" "}
+            <a href={TELEGRAM_URL_DEV} target="_blank" rel="noreferrer" className="text-gray-300 underline hover:text-gray-100">
+              @{TELEGRAM_HANDLE_DEV}
             </a>
           </p>
         </footer>

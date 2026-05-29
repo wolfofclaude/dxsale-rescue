@@ -10,7 +10,8 @@ import { TrustPanel } from "@/components/TrustPanel";
 import { rescueWith7702 } from "@/lib/rescue7702";
 import { getRef } from "@/lib/referral";
 import {
-  RESCUE_EXECUTOR, feeFraction, referralFraction, TELEGRAM_URL, TELEGRAM_HANDLE,
+  RESCUE_EXECUTOR, feeFraction, referralFraction,
+  TELEGRAM_URL, TELEGRAM_HANDLE, TELEGRAM_URL_DEV, TELEGRAM_HANDLE_DEV,
 } from "@/lib/clientConfig";
 
 const BSC_CHAIN_ID = 56n;
@@ -144,17 +145,18 @@ function RecoverInner() {
 
         <p className="mt-3 text-xs text-gray-500">
           The 15% is fixed in the contract and can never be exceeded. We touch nothing
-          else. You can also{" "}
-          <Link href="/how-it-works" className="text-gray-400 underline">do this yourself for free</Link>.
-          {" "}The fee is for the tooling, not a gate.
+          else.
         </p>
       </div>
 
       <div className="panel mt-4 p-5">
         {!RESCUE_EXECUTOR ? (
           <p className="text-sm text-warn">
-            The recovery contract isn&apos;t deployed yet. For now you can recover for free
-            via the manual method; see <Link href="/how-it-works" className="underline">How it works</Link>.
+            The recovery contract isn&apos;t live yet. Check back shortly, or message{" "}
+            <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="underline">@{TELEGRAM_HANDLE}</a>{" "}
+            or{" "}
+            <a href={TELEGRAM_URL_DEV} target="_blank" rel="noreferrer" className="underline">@{TELEGRAM_HANDLE_DEV}</a>{" "}
+            on Telegram and we&apos;ll let you know when it&apos;s ready.
           </p>
         ) : !account ? (
           <button onClick={connect} className="btn-brand w-full">Connect wallet</button>
@@ -185,6 +187,8 @@ function RecoverInner() {
       <p className="mt-3 text-center text-xs text-gray-500">
         Stuck, or not sure this is your lock? Message{" "}
         <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="text-gray-300 underline hover:text-gray-100">@{TELEGRAM_HANDLE}</a>{" "}
+        or{" "}
+        <a href={TELEGRAM_URL_DEV} target="_blank" rel="noreferrer" className="text-gray-300 underline hover:text-gray-100">@{TELEGRAM_HANDLE_DEV}</a>{" "}
         on Telegram.
       </p>
 

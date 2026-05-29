@@ -33,7 +33,7 @@ export async function rescueWith7702(
   } catch (e: any) {
     throw new Error(
       "Your wallet doesn't support EIP-7702 authorizations yet. Use a 7702-capable " +
-      "wallet, or recover for free by calling refundUniLP() directly (see How it works).",
+      "wallet to recover your LP.",
     );
   }
 

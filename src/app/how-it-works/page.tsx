@@ -4,8 +4,8 @@ export const metadata: Metadata = {
   title: "How it works",
   description:
     "How DXsale Rescue decodes a lock (bytecode-anchored slots, refundUniLP selector " +
-    "0xe50a4f80), recovers via EIP-7702 in one signature, charges a hardcoded 15% fee, " +
-    "and why you can also recover for free. Includes code evidence that dxsale.one is a drainer.",
+    "0xe50a4f80), recovers via EIP-7702 in one signature, and charges a hardcoded 15% fee. " +
+    "Includes code evidence that dxsale.one is a drainer.",
   alternates: { canonical: "/how-it-works" },
 };
 
@@ -128,15 +128,6 @@ transfer(args:[ka, n])  →  status shown: "Verification complete"`}</code>
           service fee, <strong>hardcoded in the contract</strong> so it can never exceed
           15%, with the exact split shown before you sign. The remaining 85% is untouchable
           by us.
-        </p>
-        <h3 className="mt-5 text-base text-gray-100">Don&apos;t want to pay? Do it yourself.</h3>
-        <p className="mt-3 text-sm leading-relaxed text-gray-400">
-          The fee is for the tooling, not a gate. The unlock is a public function. From the
-          authorized owner wallet you can call <code className="text-gray-200">refundUniLP()</code>{" "}
-          (selector <code className="text-brand">0xe50a4f80</code>) directly on the lock via
-          BscScan&apos;s &ldquo;Write Contract&rdquo; tab, or run the open-source script from
-          the repo, and pay nothing but gas. We&apos;d rather earn the 15% by making it one
-          click than trap you.
         </p>
       </section>
     </article>

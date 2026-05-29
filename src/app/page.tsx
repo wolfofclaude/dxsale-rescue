@@ -37,7 +37,7 @@ export default async function Home() {
           button. This finds your lock and opens it in{" "}
           <span className="text-gray-100">one signature</span> from your own wallet.
           Funds never leave your account. A flat 15%, the exact split shown before you
-          sign, and you can always do it yourself for free.
+          sign.
         </p>
         <div className="flex gap-3 pt-1">
           <Link href="/locks" className="btn-brand">Browse the library</Link>
@@ -146,9 +146,8 @@ export default async function Home() {
         </ul>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-gray-400">
           This tool is the opposite: a flat <span className="text-gray-100">15%</span>, the exact
-          split shown before you sign, the rate hardcoded so it can never creep up, funds never
-          leave your wallet, and you can always{" "}
-          <Link href="/how-it-works" className="text-gray-200 underline">do it yourself for free</Link>.{" "}
+          split shown before you sign, the rate hardcoded so it can never creep up, and funds never
+          leave your wallet.{" "}
           <Link href="/how-it-works" className="text-brand hover:underline">See the full breakdown →</Link>
         </p>
       </section>
@@ -158,7 +157,7 @@ export default async function Home() {
         <ul className="flex flex-col gap-2 text-sm text-gray-400">
           <li><span className="mr-2 text-brand">&#10003;</span>Non-custodial: the unlock runs as your own wallet, so funds never leave it.</li>
           <li><span className="mr-2 text-brand">&#10003;</span>Flat 15%, hardcoded in a verified contract, with the split shown before you sign.</li>
-          <li><span className="mr-2 text-brand">&#10003;</span>Or pay nothing: call <code className="text-gray-300">refundUniLP()</code> yourself, and we&apos;ll show you how.</li>
+          <li><span className="mr-2 text-brand">&#10003;</span>One signature, atomic: your lock opens and 85% returns to you in a single transaction.</li>
         </ul>
         <div className="flex flex-wrap gap-3 pt-1">
           <Link href="/locks?filter=recoverable" className="btn-brand">See what&apos;s recoverable</Link>
